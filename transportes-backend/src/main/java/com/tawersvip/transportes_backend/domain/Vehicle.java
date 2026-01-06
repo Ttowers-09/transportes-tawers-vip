@@ -5,11 +5,23 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.Getter;
+
+@Entity
+@Table(name = "vehicles")
 
 @Getter
 public class Vehicle {
+    @Id
+    @Column(name = "Placa", nullable = false, unique = true)
     private String placa;
+
     private String propietario;
     private int modelo;
     private String marca;
@@ -35,6 +47,16 @@ public class Vehicle {
     private String empresaDeTransporte;
 
     private LocalDate fechaMatriculacion;
+    
+    // el mapped sirve ara que la FK viva en factura, evita columnas duplicadas
+    // cascade al eliminar el vehiculo elimina las facturas
+    // Si una factura se quita se borra del vehiculo
+    @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Factura> facturas = new ArrayList<>();
+
+    protected Vehicle() {
+    // requerido por JPA
+    }
 
     // Realizamos el constructor y las validaciones del mismo
     public Vehicle(String placa, String propietario, int modelo, String marca) {
@@ -212,5 +234,20 @@ public class Vehicle {
         }
 
         return errores;
+    }
+
+    // Añadirmos el tema de las facturas para llevar la contabilidad de los gastos
+    // operativos
+
+    public void agregarFactura(Factura factura) {
+        if (factura == null) {
+            throw new IllegalArgumentException("La factura no puede ser nula");
+        }
+        this.facturas.add(factura);
+        factura.setVehicle(this);
+    }
+
+    public List<Factura> getFacturas() {
+        return List.copyOf(facturas);
     }
 }
