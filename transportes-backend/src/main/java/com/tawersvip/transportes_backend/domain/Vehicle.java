@@ -54,6 +54,10 @@ public class Vehicle {
     @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Factura> facturas = new ArrayList<>();
 
+    @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Fuec> fuecs = new ArrayList<>();
+
+
     protected Vehicle() {
     // requerido por JPA
     }
@@ -247,7 +251,30 @@ public class Vehicle {
         factura.setVehicle(this);
     }
 
+    public void removerFactura(Factura factura) {
+        facturas.remove(factura);
+        factura.setVehicle(null);
+    }
+
     public List<Factura> getFacturas() {
         return List.copyOf(facturas);
     }
+
+    public void agregarFuec(Fuec fuec) {
+        if (fuec == null) {
+            throw new IllegalArgumentException("El fuec no puede ser nulo");
+        }
+        this.fuecs.add(fuec);
+        fuec.setVehicle(this);
+    }
+
+    public void removerFuec(Fuec fuec) {
+        fuecs.remove(fuec);
+        fuec.setVehicle(null);
+    }
+
+    public List<Fuec> getFuecs() {
+        return List.copyOf(fuecs);
+    }
+
 }

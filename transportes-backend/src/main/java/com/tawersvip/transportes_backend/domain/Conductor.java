@@ -2,24 +2,55 @@ package com.tawersvip.transportes_backend.domain;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
 import lombok.Getter;
 
+@Entity
+@Table(name = "conductores")
 @Getter
 public class Conductor {
 
+    @Column(nullable = false)
     private String nombre;
+
+    @Id
     private String numeroCedula;
+
+    @Column(nullable = false)
     private String telefono;
+
+    @Column(nullable = false)
     private String direccion;
+
+    @Column(nullable = false)
     private LocalDate fechaNacimiento;
 
-    private String categorialicencia;
+    @Column(nullable = false)
+    private String categoriaLicencia;
+
+    @Column
     private LocalDate fechaVencimientoLicencia;
 
+    @Column
     private LocalDate fechaInicioContrato;
+
+    @Column(nullable = false)
     private LocalDate fechaPlanillaDeSeguridadSocial;
+
+    @ManyToMany(mappedBy = "conductores", fetch = FetchType.LAZY)
+    private Set<Fuec> fuecs = new HashSet<>();
+
+    protected Conductor() {
+    }
 
     public Conductor(String nombre, String numeroCedula, String telefono, String direccion, LocalDate fechaNacimiento) {
 
@@ -67,7 +98,7 @@ public class Conductor {
             throw new IllegalArgumentException("La licencia debe tener una fecha de vencimiento válida");
         }
 
-        this.categorialicencia = categoriaLicencia;
+        this.categoriaLicencia = categoriaLicencia;
         this.fechaVencimientoLicencia = fechaVencimiento;
     }
 
@@ -107,7 +138,7 @@ public class Conductor {
         this.fechaPlanillaDeSeguridadSocial = fechaPlanilla;
     }
 
-    private void validarFechaNacimiento (LocalDate fechaNacimiento) {
+    private void validarFechaNacimiento(LocalDate fechaNacimiento) {
         if (fechaNacimiento == null || fechaNacimiento.isAfter(LocalDate.now())) {
             throw new IllegalArgumentException("La fecha de nacimiento no es válida");
         }
@@ -118,16 +149,16 @@ public class Conductor {
         return java.time.Period.between(fechaNacimiento, LocalDate.now()).getYears();
     }
 
-    public boolean isConductorActivo(LocalDate fechaActual){
+    public boolean isConductorActivo(LocalDate fechaActual) {
         return validarEstado(fechaActual).isEmpty();
     }
 
-    public List<String> validarEstado (LocalDate fechaActual){
-        if(fechaActual == null){
+    public List<String> validarEstado(LocalDate fechaActual) {
+        if (fechaActual == null) {
             throw new IllegalArgumentException("La fecha actual es obligatoria");
         }
 
-        List <String> errores = new ArrayList<>();
+        List<String> errores = new ArrayList<>();
 
         if (fechaVencimientoLicencia == null || fechaVencimientoLicencia.isBefore(fechaActual)) {
             errores.add("La licencia se encuentra Vencida o no ha sido registrada");
@@ -143,5 +174,33 @@ public class Conductor {
             errores.add("La planilla de seguridad social no ha sido registrada para el mes actual");
         }
         return errores;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof Conductor))
+            return false;
+        Conductor that = (Conductor) o;
+        return numeroCedula != null && numeroCedula.equals(that.numeroCedula);
+    }
+
+    @Override
+    public int hashCode() {
+        return numeroCedula != null ? numeroCedula.hashCode() : 0;
+    }
+
+    public void agregarFuec(Fuec fuec) {
+        if (fuec == null) {
+            throw new IllegalArgumentException("El FUEC no puede ser nulo");
+        }
+        this.fuecs.add(fuec);
+        fuec.getConductores().add(this);
+    }
+
+    public void removerFuec(Fuec fuec) {
+        this.fuecs.remove(fuec);
+        fuec.getConductores().remove(this);
     }
 }

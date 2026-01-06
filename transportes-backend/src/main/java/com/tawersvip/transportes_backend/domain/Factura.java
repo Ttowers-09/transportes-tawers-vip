@@ -37,9 +37,6 @@ public class Factura {
     @Column(length = 255)
     private String descripcion;
 
-    @Column(name = "nombre_conductor")
-    private String nombreDelConductor;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TipoGasto tipoGasto;
@@ -48,16 +45,20 @@ public class Factura {
     @JoinColumn(name = "vehicle_placa", nullable = false)
     private Vehicle vehicle;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "conductor_cedula", nullable = false)
+    private Conductor conductor;
+
     protected Factura() {
     }
 
-    public Factura(LocalDate fechaEmision, int valor, CategoriaGastoOperativo categoria, String descripcion, String nombreDelConductor, TipoGasto tipoGasto, Vehicle vehicle) {
+    public Factura(LocalDate fechaEmision, int valor, CategoriaGastoOperativo categoria, String descripcion, TipoGasto tipoGasto, Vehicle vehicle, Conductor conductor) {
         validarFechaFactura(fechaEmision);
         validarValorFactura(valor);
         validarCategoriaGastoOperativo(categoria);
-        validarConductor(nombreDelConductor);
         validarTipoDeGasto(tipoGasto);
         validarVehicle(vehicle);
+        validarConductor(conductor);
         this.descripcion = descripcion;
     }
 
@@ -82,15 +83,6 @@ public class Factura {
         this.categoria = categoria;
     }
 
-    public void validarConductor(String nombreDelConductor) {
-        if (tipoGasto == TipoGasto.OPERATIVO_CONDUCTOR) {
-            if (nombreDelConductor == null || nombreDelConductor.isEmpty()) {
-                throw new IllegalArgumentException("El nombre del conductor no puede ser nulo o vacío");
-            }
-        }
-        this.nombreDelConductor = nombreDelConductor;
-    }
-
     private void validarVehicle(Vehicle vehicle) {
         if (vehicle == null) {
             throw new IllegalArgumentException("La factura debe pertenecer a un vehículo");
@@ -105,12 +97,19 @@ public class Factura {
         this.tipoGasto = tipoGasto;
     }
 
-    public String getNombreDelConductor() {
-        return nombreDelConductor;
-    }
-
     public void setVehicle(Vehicle vehicle) {
         this.vehicle = vehicle;
+    }
+
+    public void setConductor(Conductor conductor) {
+        validarConductor(conductor);
+    }
+
+    private void validarConductor(Conductor conductor) {
+        if (conductor == null) {
+            throw new IllegalArgumentException("La factura debe pertenecer a un conductor");
+        }
+        this.conductor = conductor;
     }
 
 }

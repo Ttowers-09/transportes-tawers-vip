@@ -1,14 +1,32 @@
 package com.tawersvip.transportes_backend.domain;
 
 import java.time.LocalDate;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
 
+@Entity
+@Table(name = "propietarios")
 @Getter
 public class Propietario {
+
+    @Column(nullable = false)
     private String nombre;
+
+
+    @Id
     private String numeroCedula;
+
+    @Column(nullable = false)
     private String telefono;
+
+    @Column(nullable = false)
     private String direccion;
+
+    @Column(nullable = false)
     private LocalDate fechaNacimiento;
 
     public Propietario(String nombre, String numeroCedula, String telefono, String direccion, LocalDate fechaNacimiento) {
